@@ -12,7 +12,7 @@ Method | Path | Description | Restrictions
 ---|---|---|---
 `GET` | `/team` | Get team list.
 `POST` | `/team` | Create a team. | **A**
-`GET` | `/team/%teamId` | Show team name, category, matches, their current score
+`GET` | `/team/%teamId` | Show team name, category, matches and their current score
 `PUT` | `/team/%teamId` | Edit a team name or category | **A**
 `DELETE` | `/team/%teamId` | Delete a team. | **A** _?_
 `GET` | `/category` | Get category list.

@@ -9,8 +9,8 @@ class Category(models.Model):
 
     key = models.SlugField(unique=True, verbose_name=_('key ID'))
     name = models.CharField(max_length=80, verbose_name=_('name'))
-    color = models.CharField(max_length=20, verbose_name=_('color'),
-        help_text=_("HTML color used to visually identify this category"))
+    colour = models.CharField(max_length=20, verbose_name=_('colour'),
+        help_text=_("HTML colour used to visually identify this category"))
 
 class Institution(models.Model):
     class Meta:

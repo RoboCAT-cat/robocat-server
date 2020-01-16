@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('key', models.SlugField(unique=True, verbose_name='key ID')),
                 ('name', models.CharField(max_length=80, verbose_name='name')),
-                ('color', models.CharField(help_text='HTML color used to visually identify this category', max_length=20, verbose_name='color')),
+                ('colour', models.CharField(help_text='HTML colour used to visually identify this category', max_length=20, verbose_name='colour')),
             ],
             options={
                 'verbose_name': 'category',

@@ -61,6 +61,14 @@ class Score(models.Model):
     cubes_on_black_field = models.PositiveIntegerField(verbose_name=_('cubes on black field'))
     cubes_on_white_field = models.PositiveIntegerField(verbose_name=_('cubes on white field'))
 
+    # Ad-hoc points: If the referees deem it necessary, extra points may be awarded to or substracted
+    # from a team. These fields should be used sparingly, mostly to handle unforeseen events or
+    # to work around bugs on the software, and should be accompanied by a note justifying this decision.
+    black_adhoc = models.IntegerField(default=0, verbose_name=_('ad-hoc points for black team'))
+    white_adhoc = models.IntegerField(default=0, verbose_name=_('ad-hoc points for white team'))
+
+    notes = models.TextField(blank=True, default='', verbose_name=_('notes'))
+
     @staticmethod
     def white_score_q():
         """
@@ -213,6 +221,7 @@ class Match(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        default=None,
         related_name='match_as_partial_white',
         verbose_name=_('partial score for white team')
     )
@@ -222,6 +231,7 @@ class Match(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        default=None,
         related_name='match_as_partial_black',
         verbose_name=_('partial score for black team')
     )

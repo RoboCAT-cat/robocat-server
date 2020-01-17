@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import F, Q, Case, When, ExpressionWrapper
 
+from teams.models import Team
+
 # Create your models here.
 class Score(models.Model):
     # Note: The comments explaining the scoreing are for quick reference and by no means official.
@@ -164,3 +166,71 @@ class Score(models.Model):
             return 0
         else:
             return 1
+
+class Match(models.Model):
+    class Meta:
+        verbose_name = _('match')
+        verbose_name_plural = _('matches')
+
+    class Status(models.TextChoices):
+        NOT_PLAYED = 'NP', _('Not played')
+        PLAYING = 'PL', _('Playing')
+        SCORING = 'SC', _('Scoring')
+        FINISHED = 'FI', _('Finished')
+    
+    # Side-note: White team (and white score, ...) refers to the team playing on the
+    # white side of the field; black team, to the team playing on the black side of the field.
+    # While the actual side on which the team has played is irrelevant, the software will refer
+    # internally to the "white team" or "black team", and the front-end may choose to do so too.
+    # If "switching sides" is to be expected, presentation software must be carefully designed
+    # to avoid such references, as they may be confusing.
+
+    white_team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='matches_as_white',
+        verbose_name=_('white team')
+    )
+
+    black_team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='matches_as_black',
+        verbose_name=_('black team')
+    )
+
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.NOT_PLAYED)
+
+    # Partial scores: On partial scores, the other team's score is ignored, so it is possible
+    # to send the score of the two teams separately.
+
+    partial_white_score = models.OneToOneField(
+        Score,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='match_as_partial_white',
+        verbose_name=_('partial score for white team')
+    )
+
+    partial_black_score = models.OneToOneField(
+        Score,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='match_as_partial_black',
+        verbose_name=_('partial score for black team')
+    )
+
+    score = models.OneToOneField(
+        Score,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='match',
+        verbose_name=_('score')
+    )

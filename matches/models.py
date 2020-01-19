@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import F, Q, Case, When, ExpressionWrapper
+from django.core.exceptions import ValidationError
 
 from teams.models import Team
 
@@ -244,3 +245,9 @@ class Match(models.Model):
         related_name='match',
         verbose_name=_('score')
     )
+
+    def clean(self):
+        if self.white_team is None and self.black_team is None:
+            raise ValidationError(_("At least one team must be non-null"), 'both-teams-null')
+        if self.status == self.Status.FINISHED and score is None:
+            raise ValidationError(_("Score of a finished match must not be null"), 'null-score-on-finished')

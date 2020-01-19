@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'teams',
-    'matches',
+    'matches.apps.MatchesConfig',
     'schedules',
 ]
 

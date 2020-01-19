@@ -1,7 +1,7 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, gettext as e_
 from django.db.models import F, Q, Case, When, ExpressionWrapper
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 
 from teams.models import Team
 
@@ -176,6 +176,12 @@ class Score(models.Model):
         else:
             return 1
 
+    def __str__(self):
+        return e_('White: %(white_score)s; Black: %(black_score)s') % {
+            'white_score': self.white_score,
+            'black_score': self.black_score
+        }
+
 class Match(models.Model):
     class Meta:
         verbose_name = _('match')
@@ -193,6 +199,9 @@ class Match(models.Model):
     # internally to the "white team" or "black team", and the front-end may choose to do so too.
     # If "switching sides" is to be expected, presentation software must be carefully designed
     # to avoid such references, as they may be confusing.
+
+    # One of the teams may be NULL (but not both). In this case, it is a "bye" ("pase" in Spanish),
+    # i.e. the player wins automatically. This may be needed in case there is an odd number of teams
 
     white_team = models.ForeignKey(
         Team,
@@ -246,8 +255,30 @@ class Match(models.Model):
         verbose_name=_('score')
     )
 
-    def clean(self):
+    def clean_fields(self, exclude=None):
+        super().clean_fields(exclude=None)
+        row_errors = []
+        field_errors = {}
         if self.white_team is None and self.black_team is None:
-            raise ValidationError(_("At least one team must be non-null"), 'both-teams-null')
-        if self.status == self.Status.FINISHED and score is None:
-            raise ValidationError(_("Score of a finished match must not be null"), 'null-score-on-finished')
+            row_errors.append(ValidationError(_("At least one team must be non-null"), 'both-teams-null'))
+        if self.white_team is not None and self.white_team is not None and self.white_team.pk == self.black_team.pk:
+            row_errors.append(ValidationError(_("A team may not play against itself"), 'team-against-itself'))
+        if self.status == self.Status.FINISHED:
+            if not (exclude and 'score' in exclude) and self.score is None:
+                field_errors['score'] = ValidationError(_("Score of a finished match must not be null"), 'null-score-on-finished')
+            if not (exclude and 'partial_black_score' in exclude) and self.partial_black_score is not None:
+                field_errors['partial_black_score'] = ValidationError(_("Finished match may not have a partial score"), 'partial-score-on-finished')
+            if not (exclude and 'partial_white_score' in exclude) and self.partial_white_score is not None:
+                field_errors['partial_white_score'] = ValidationError(_("Finished match may not have a partial score"), 'partial-score-on-finished')
+        if row_errors:
+            field_errors[NON_FIELD_ERRORS] = row_errors
+        if field_errors:
+            raise ValidationError(field_errors)
+
+    def __str__(self):
+        if self.white_team is None:
+            return e_('white: %s (bye)') % (self.white_team,)
+        elif self.black_team is None:
+            return e_('black: %s (bye)') % (self.black_team,)
+        else:
+            return e_('%(white)s vs %(black)s') % { 'white': self.white_team, 'black': self.black_team }

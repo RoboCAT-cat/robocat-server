@@ -12,6 +12,9 @@ class Category(models.Model):
     colour = models.CharField(max_length=20, verbose_name=_('colour'),
         help_text=_("HTML colour used to visually identify this category"))
 
+    def __str__(self):
+        return self.name
+
 class Institution(models.Model):
     class Meta:
         verbose_name = _('institution')
@@ -20,6 +23,9 @@ class Institution(models.Model):
     key = models.SlugField(unique=True, verbose_name=_('key ID'))
     name = models.CharField(max_length=80, verbose_name=_('name'))
     contact_info = models.TextField(blank=True, verbose_name=_('contact information'))
+
+    def __str__(self):
+        return self.name
 
 class Team(models.Model):
     class Meta:
@@ -40,3 +46,6 @@ class Team(models.Model):
         related_name='teams',
         verbose_name=_('category')
     )
+
+    def __str__(self):
+        return self.name

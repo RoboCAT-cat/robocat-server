@@ -184,7 +184,7 @@ class Score(models.Model):
         Generate a Django Expression that can be used with .annotate()
         to obtain the score of the white team.
         """
-        score = ExpressionWrapper(
+        score = (
             F('cubes_on_lower_black')
             + 5 * F('cubes_on_upper_black')
             + Case(
@@ -194,25 +194,26 @@ class Score(models.Model):
             + Case(
                 When(white_stalled=True, then=-10),
                 default=0
-            ),
-            output_field=models.IntegerField()
+            )
         )
         return Case(
             When(white_disqualified=True, then=0),
             default=score
-        )
+        ) + F('white_adhoc')
 
     @property
     def white_score(self):
-        if self.white_disqualified:
-            return 0
         score = 0
-        if self.white_stalled:
-            score -= 10
+        score += self.white_adhoc
+        if self.white_disqualified:
+            return score
+        if not self.white_stalled:
+            score += 10
         score += self.cubes_on_lower_black or 0
         score += 5 * (self.cubes_on_upper_black or 0)
         if (self.cubes_on_white_field or 0) < (self.cubes_on_black_field or 0):
             score += 10
+        score += self.white_adhoc
         return score
 
     @staticmethod
@@ -221,7 +222,7 @@ class Score(models.Model):
         Generate a Django Expression that can be used with .annotate()
         to obtain the score of the black team.
         """
-        score = ExpressionWrapper(
+        score = (
             F('cubes_on_lower_white')
             + 5 * F('cubes_on_upper_white')
             + Case(
@@ -229,23 +230,23 @@ class Score(models.Model):
                 default=0
             )
             + Case(
-                When(black_stalled=True, then=-10),
-                default=0
-            ),
-            output_field=models.IntegerField()
+                When(black_stalled=True, then=0),
+                default=10
+            )
         )
         return Case(
             When(black_disqualified=True, then=0),
             default=score
-        )
+        ) + F('black_adhoc')
 
     @property
     def black_score(self):
+        score = 0
+        score += self.black_adhoc
         if self.black_disqualified:
             return 0
-        score = 0
-        if self.black_stalled:
-            score -= 10
+        if not self.black_stalled:
+            score += 10
         score += self.cubes_on_lower_white or 0
         score += 5 * (self.cubes_on_upper_white or 0)
         if (self.cubes_on_black_field or 0) < (self.cubes_on_white_field or 0):

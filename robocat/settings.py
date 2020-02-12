@@ -123,3 +123,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+_graphene_middleware = []
+
+if DEBUG:
+    _graphene_middleware.append('graphene_django.debug.DjangoDebugMiddleware')
+
+GRAPHENE = {
+    'SCHEMA': 'robocat.schema.schema',
+    'SCHEMA_OUTPUT': 'schema.json',
+    'SCHEMA_INDENT': 2,
+    'MIDDLEWARE': _graphene_middleware
+}

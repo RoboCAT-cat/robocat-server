@@ -1,14 +1,30 @@
 import graphene
 from graphene_django import DjangoObjectType
-from .models import Category, Team
+from .models import Category, Team, Institution
 
 class CategoryType(DjangoObjectType):
     class Meta:
         model = Category
+        fields = ['name', 'colour']
+    
+    id = graphene.NonNull(graphene.ID)
+    
+    def resolve_id(self, info, **kwargs):
+        return self.key
 
 class TeamType(DjangoObjectType):
     class Meta:
         model = Team
+        fields = ['name', 'category']
+
+    id = graphene.NonNull(graphene.ID)
+    institution_name = graphene.NonNull(graphene.String)
+
+    def resolve_id(self, info, **kwargs):
+        return self.key
+
+    def resolve_institution_name(self, info, **kwargs):
+        return self.institution.name
 
 class Query:
     all_categories = graphene.List(graphene.NonNull(CategoryType))

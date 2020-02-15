@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'graphene_django',
+    'corsheaders',
     'teams.apps.TeamsConfig',
     'matches.apps.MatchesConfig',
     'schedules',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -135,3 +137,9 @@ GRAPHENE = {
     'SCHEMA_INDENT': 2,
     'MIDDLEWARE': _graphene_middleware
 }
+
+# CORS
+# CORS may need to be disabled during development to test frontend and backend
+# separately, but in production they run from the same server, so CORS should
+# be enabled.
+CORS_ORIGIN_ALLOW_ALL = DEBUG

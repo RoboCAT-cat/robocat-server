@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _, gettext as e_
 from django.db.models import F, Q, Case, When, ExpressionWrapper
@@ -16,7 +17,9 @@ class Match(models.Model):
         PLAYING = 'PL', _('Playing')
         SCORING = 'SC', _('Scoring')
         FINISHED = 'FI', _('Finished')
-    
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name=_('ID'))
+
     # Side-note: White team (and white score, ...) refers to the team playing on the
     # white side of the field; black team, to the team playing on the black side of the field.
     # While the actual side on which the team has played is irrelevant, the software will refer
@@ -45,39 +48,10 @@ class Match(models.Model):
         verbose_name=_('black team')
     )
 
-    status = models.CharField(max_length=2, choices=Status.choices, default=Status.NOT_PLAYED)
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.NOT_PLAYED, verbose_name=_('status'))
 
     # Partial scores: On partial scores, the other team's score is ignored, so it is possible
     # to send the score of the two teams separately.
-
-    # partial_white_score = models.OneToOneField(
-    #     Score,
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True,
-    #     default=None,
-    #     related_name='match_as_partial_white',
-    #     verbose_name=_('partial score for white team')
-    # )
-
-    # partial_black_score = models.OneToOneField(
-    #     Score,
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True,
-    #     default=None,
-    #     related_name='match_as_partial_black',
-    #     verbose_name=_('partial score for black team')
-    # )
-
-    # score = models.OneToOneField(
-    #     Score,
-    #     on_delete=models.PROTECT,
-    #     null=True,
-    #     blank=True,
-    #     related_name='match',
-    #     verbose_name=_('score')
-    # )
 
     def clean(self):
         super().clean()

@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+{# TODO: Localize #}
+<html lang="en">
+  {# Not a template comment because it must be written in the resulting HTML #}
+  <!-- Open-source licenses: {% static '3rdpartylicenses.txt' %} -->
+  <head>
+    <meta charset="utf-8" />
+    <title>RoboCAT</title>
+    <base href="{% url 'client:base' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    {# Required by Angular Material: #}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+  </head>
+  <body class="mat-typography">
+    <app-root></app-root>
+
+    <script src="{% static 'runtime.js' %}" defer></script>
+    <script src="{% static 'polyfills.js' %}" defer></script>
+    <script src="{% static 'main.js' %}" defer></script>
+  </body>
+</html>

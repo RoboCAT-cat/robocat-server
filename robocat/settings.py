@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'graphene_django',
     'corsheaders',
+    'client.apps.ClientConfig',
     'teams.apps.TeamsConfig',
     'matches.apps.MatchesConfig',
-    'schedules',
+    'schedules',  # TODO: Adapt and use SchedulesConfig (missing verbose_name)
 ]
 
 MIDDLEWARE = [

@@ -26,12 +26,13 @@ SECRET_KEY = 'y425xi4mz%t!dv2e*-*m((jvlt%$aqji33lxghrznhad)7im$2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +49,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -55,6 +58,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # If a cache is added, htmlmin must be reordered. Check its PyPI page.
+    # 'htmlmin.middleware.HtmlMinifyMiddleware',
+    # 'htmlmin.middleware.MarkRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'robocat.urls'
@@ -133,6 +139,8 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static-root')
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 _graphene_middleware = []
 
 if DEBUG:
@@ -150,3 +158,18 @@ GRAPHENE = {
 # separately, but in production they run from the same server, so CORS should
 # be enabled.
 CORS_ORIGIN_ALLOW_ALL = DEBUG
+
+# WhiteNoise (static file framework)
+# Uncomment to remove unhashed files. These should not be referenced
+# and may reduce the size of the static file storage by a 25-50 %.
+# However, it will impede DEBUG mode
+# WHITENOISE_KEEP_ONLY_HASHED_FILES = True
+WHITENOISE_AUTOREFRESH = False
+WHITENOISE_USE_FINDERS = False
+
+# HTML minifier
+# Uncomment to minify also in DEBUG Mode
+# HTML_MINIFY = True
+# HTML comments (<!-- ... -->) will be kept. Django comments ({# ... #})
+# will still be stripped
+KEEP_COMMENTS_ON_MINIFYING = True

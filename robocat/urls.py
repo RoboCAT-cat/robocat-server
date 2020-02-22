@@ -17,10 +17,14 @@ from django.contrib import admin
 from django.urls import path, include
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # TODO: Implement CSRF protection?
-    path('graphql', csrf_exempt(GraphQLView.as_view(graphiql=True)), name='graphql'),
-    path('', include('client.urls', namespace='client')),
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True)), name='graphql'),
+    # Alternative solution to avoid a robocat/ URL: add a catch-all admin/graphql with a
+    # view that raises Http404
+    path('robocat/', include('client.urls', namespace='client')),
+    path('', RedirectView.as_view(url='/robocat/'))
 ]

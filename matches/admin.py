@@ -7,13 +7,14 @@ from django.utils.translation import gettext_lazy as _
 # admin.site.register(Match)
 class ScoreInline(admin.StackedInline):
     model = Score
-    readonly_fields = ['white_score', 'black_score',
-        'white_qualification_points', 'black_qualification_points']
+    # FIXME: Show these fields -- now calculated with SQL
+    # readonly_fields = ['white_score', 'black_score',
+    #     'white_qualification_points', 'black_qualification_points']
     fieldsets = [
-        (None, {
-            'fields': [('white_score', 'black_score'),
-                ('white_qualification_points', 'black_qualification_points')]
-        }),
+        # (None, {
+        #     'fields': [('white_score', 'black_score'),
+        #         ('white_qualification_points', 'black_qualification_points')]
+        # }),
         (_('Disqualifications'), {
             'fields': [('white_disqualified', 'black_disqualified')]
         }),

@@ -6,11 +6,83 @@ from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 
 from teams.models import Team
 
+class ScoredMatchManager(models.Manager):
+    @staticmethod
+    def gen_expr_for_white_score():
+        score = (
+            F('score__cubes_on_lower_black')
+            + 5 * F('score__cubes_on_upper_black')
+            + Case(
+                When(score__cubes_on_white_field__lt=F('score__cubes_on_black_field'), then=10),
+                default=0
+            )
+            + Case(
+                When(score__white_stalled=False, then=10),
+                default=0
+            )
+        )
+        return Case(
+            When(score__white_disqualified=True, then=0),
+            default=score
+        ) + F('score__white_adhoc')
+
+    @staticmethod
+    def gen_expr_for_black_score():
+        score = (
+            F('score__cubes_on_lower_white')
+            + 5 * F('score__cubes_on_upper_white')
+            + Case(
+                When(score__cubes_on_black_field__lt=F('score__cubes_on_white_field'), then=10),
+                default=0
+            )
+            + Case(
+                When(score__black_stalled=True, then=0),
+                default=10
+            )
+        )
+        return Case(
+            When(score__black_disqualified=True, then=0),
+            default=score
+        ) + F('score__black_adhoc')
+
+    @staticmethod
+    def gen_expr_for_white_qual_points():
+        return Case(
+            When(score__white_disqualified=True, then=0),
+            When(white_score__gt=F('black_score'), then=3),
+            When(white_score=F('black_score'), then=1),
+            When(white_score__lt=F('black_score'), then=0),
+            output_field=models.IntegerField()
+        )
+
+    @staticmethod
+    def gen_expr_for_black_qual_points():
+        return Case(
+            When(score__black_disqualified=True, then=0),
+            When(black_score__gt=F('white_score'), then=3),
+            When(black_score=F('white_score'), then=1),
+            When(black_score__lt=F('white_score'), then=0),
+            output_field=models.IntegerField()
+        )
+
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .annotate(white_score=self.gen_expr_for_white_score())
+            .annotate(black_score=self.gen_expr_for_black_score())
+            .annotate(white_qualification_points=self.gen_expr_for_white_qual_points())
+            .annotate(black_qualification_points=self.gen_expr_for_black_qual_points())
+        )
+
 # Create your models here.
 class Match(models.Model):
     class Meta:
         verbose_name = _('match')
         verbose_name_plural = _('matches')
+
+    # Managers
+    objects = models.Manager()
+    scored_objects = ScoredMatchManager()
 
     class Status(models.TextChoices):
         NOT_PLAYED = 'NP', _('Not played')
@@ -123,7 +195,7 @@ class Score(models.Model):
     # Stall: If a robot is stuck for more than 10 seconds, it can be moved
     # to its initial position. If the team does so, the robot has "stalled",
     # and a penalty of 10 points is received. This can only be done once per match.
-    # Effects: if self.stalled: self.score -= 10
+    # Effects: if not self.stalled: self.score += 10
     white_stalled = models.BooleanField(default=False, verbose_name=_('white has stalled'))
     black_stalled = models.BooleanField(default=False, verbose_name=_('black has stalled'))
 
@@ -175,89 +247,66 @@ class Score(models.Model):
             default=score
         ) + F('white_adhoc')
 
-    @property
-    def white_score(self):
-        score = 0
-        score += self.white_adhoc
-        if self.white_disqualified:
-            return score
-        if not self.white_stalled:
-            score += 10
-        score += self.cubes_on_lower_black or 0
-        score += 5 * (self.cubes_on_upper_black or 0)
-        if (self.cubes_on_white_field or 0) < (self.cubes_on_black_field or 0):
-            score += 10
-        score += self.white_adhoc
-        return score
+    # @property
+    # def white_score(self):
+    #     score = 0
+    #     score += self.white_adhoc
+    #     if self.white_disqualified:
+    #         return score
+    #     if not self.white_stalled:
+    #         score += 10
+    #     score += self.cubes_on_lower_black or 0
+    #     score += 5 * (self.cubes_on_upper_black or 0)
+    #     if (self.cubes_on_white_field or 0) < (self.cubes_on_black_field or 0):
+    #         score += 10
+    #     score += self.white_adhoc
+    #     return score
 
-    @staticmethod
-    def black_score_q():
-        """
-        Generate a Django Expression that can be used with .annotate()
-        to obtain the score of the black team.
-        """
-        score = (
-            F('cubes_on_lower_white')
-            + 5 * F('cubes_on_upper_white')
-            + Case(
-                When(cubes_on_black_field__lt=F('cubes_on_white_field'), then=10),
-                default=0
-            )
-            + Case(
-                When(black_stalled=True, then=0),
-                default=10
-            )
-        )
-        return Case(
-            When(black_disqualified=True, then=0),
-            default=score
-        ) + F('black_adhoc')
+    # @property
+    # def black_score(self):
+    #     score = 0
+    #     score += self.black_adhoc
+    #     if self.black_disqualified:
+    #         return 0
+    #     if not self.black_stalled:
+    #         score += 10
+    #     score += self.cubes_on_lower_white or 0
+    #     score += 5 * (self.cubes_on_upper_white or 0)
+    #     if (self.cubes_on_black_field or 0) < (self.cubes_on_white_field or 0):
+    #         score += 10
+    #     return score
 
-    @property
-    def black_score(self):
-        score = 0
-        score += self.black_adhoc
-        if self.black_disqualified:
-            return 0
-        if not self.black_stalled:
-            score += 10
-        score += self.cubes_on_lower_white or 0
-        score += 5 * (self.cubes_on_upper_white or 0)
-        if (self.cubes_on_black_field or 0) < (self.cubes_on_white_field or 0):
-            score += 10
-        return score
+    # @property
+    # def white_won(self):
+    #     return (not self.white_disqualified) and (self.black_disqualified
+    #         or self.white_score > self.black_score)
 
-    @property
-    def white_won(self):
-        return (not self.white_disqualified) and (self.black_disqualified
-            or self.white_score > self.black_score)
+    # @property
+    # def black_won(self):
+    #     return (not self.black_disqualified) and (self.white_disqualified
+    #         or self.black_score > self.white_score)
 
-    @property
-    def black_won(self):
-        return (not self.black_disqualified) and (self.white_disqualified
-            or self.black_score > self.white_score)
+    # @property
+    # def white_qualification_points(self):
+    #     if self.white_disqualified:
+    #         return 0
+    #     elif self.white_won:
+    #         return 3
+    #     elif self.black_won:
+    #         return 0
+    #     else:
+    #         return 1
 
-    @property
-    def white_qualification_points(self):
-        if self.white_disqualified:
-            return 0
-        elif self.white_won:
-            return 3
-        elif self.black_won:
-            return 0
-        else:
-            return 1
-
-    @property
-    def black_qualification_points(self):
-        if self.black_disqualified:
-            return 0
-        elif self.black_won:
-            return 3
-        elif self.white_won:
-            return 0
-        else:
-            return 1
+    # @property
+    # def black_qualification_points(self):
+    #     if self.black_disqualified:
+    #         return 0
+    #     elif self.black_won:
+    #         return 3
+    #     elif self.white_won:
+    #         return 0
+    #     else:
+    #         return 1
 
     def __str__(self):
         return e_('White: %(white_score)s; Black: %(black_score)s') % {

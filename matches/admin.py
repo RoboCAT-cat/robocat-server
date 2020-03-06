@@ -1,20 +1,13 @@
 from django.contrib import admin
 from .models import Score, PartialScore, Match
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, pgettext
 
 # Register your models here.
 # admin.site.register(Score)
 # admin.site.register(Match)
 class ScoreInline(admin.StackedInline):
     model = Score
-    # FIXME: Show these fields -- now calculated with SQL
-    # readonly_fields = ['white_score', 'black_score',
-    #     'white_qualification_points', 'black_qualification_points']
     fieldsets = [
-        # (None, {
-        #     'fields': [('white_score', 'black_score'),
-        #         ('white_qualification_points', 'black_qualification_points')]
-        # }),
         (_('Disqualifications'), {
             'fields': [('white_disqualified', 'black_disqualified')]
         }),
@@ -56,9 +49,47 @@ class BlackPartialScoreInline(PartialScoreInline):
 
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
-    fields = ('status', 'white_team', 'black_team')
+    # Translators: This is shown on the admin interface when a score has not
+    # been calculated (e.g. because the match hasn't been scored yet)
+    NO_SCORE_AVAILABLE = pgettext('no score available', 'N/A')
+
+    readonly_fields = ('white_score', 'black_score',
+        'white_qualification_points', 'black_qualification_points')
+
+    fieldsets = [
+        (None, {
+            'fields': ['status', ('white_team', 'black_team')]
+        }),
+        (_('Calculated score'), {
+            'fields': [('white_score', 'black_score'),
+                ('white_qualification_points', 'black_qualification_points')],
+            'description': _('Calculated score for this match. This score is '
+                'based on the <strong>final</strong> score, not on partial ones. '
+                'To change these values, alter the corresponding fields on the '
+                'score table.')
+        })
+    ]
     inlines = [
         WhitePartialScoreInline,
         BlackPartialScoreInline,
         ScoreInline
     ]
+
+    def white_score(self, obj):
+        score = obj.white_score
+        return score if score is not None else self.NO_SCORE_AVAILABLE
+
+    def black_score(self, obj):
+        score = obj.black_score
+        return score if score is not None else self.NO_SCORE_AVAILABLE
+
+    def white_qualification_points(self, obj):
+        points = obj.white_qualification_points
+        return points if points is not None else self.NO_SCORE_AVAILABLE
+
+    def black_qualification_points(self, obj):
+        points = obj.white_qualification_points
+        return points if points is not None else self.NO_SCORE_AVAILABLE
+
+    def get_queryset(self, request):
+        return self.model.scored_objects.get_queryset()

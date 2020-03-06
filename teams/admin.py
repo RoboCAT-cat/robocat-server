@@ -11,7 +11,8 @@ class TeamInline(admin.TabularInline):
     model = Team
     extra = 1
     prepopulated_fields = { 'key': ('name',) }
-    fields = ('name', 'key', 'category')
+    readonly_fields = ('raffle',)
+    fields = ('name', 'key', 'category', 'raffle')
 
 @admin.register(Institution)
 class InstitutionAdmin(admin.ModelAdmin):

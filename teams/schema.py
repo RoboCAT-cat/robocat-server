@@ -16,6 +16,7 @@ class TeamType(DjangoObjectType):
     class Meta:
         model = Team
         fields = ['name', 'category']
+        # raffle is intentionally ommited: it should be considered an implementation detail
 
     id = graphene.NonNull(graphene.ID)
     institution_name = graphene.NonNull(graphene.String)

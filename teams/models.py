@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+import random
 
 # Create your models here.
 class Category(models.Model):
@@ -27,6 +28,9 @@ class Institution(models.Model):
     def __str__(self):
         return self.name
 
+def gen_raffle_result():
+    return random.randint(0, 2147483647)
+
 class Team(models.Model):
     class Meta:
         verbose_name = _('team')
@@ -34,6 +38,10 @@ class Team(models.Model):
 
     key = models.SlugField(unique=True, verbose_name=('key ID'))
     name = models.CharField(max_length=80, verbose_name=_('name'))
+    raffle = models.PositiveIntegerField(
+        default=gen_raffle_result,
+        verbose_name=_('raffle result')
+    )
     institution = models.ForeignKey(
         Institution,
         on_delete=models.CASCADE,
@@ -46,6 +54,9 @@ class Team(models.Model):
         related_name='teams',
         verbose_name=_('category')
     )
+
+    def reroll_raffle(self):
+        self.raffle = gen_raffle_result()
 
     def __str__(self):
         return self.name

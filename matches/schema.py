@@ -24,10 +24,10 @@ class ScoredMatchType(DjangoObjectType):
         return self.black_score
 
     def resolve_white_qualification_points(self, info, **kwargs):
-        return self.white_score
+        return self.white_qualification_points
 
     def resolve_black_qualification_points(self, info, **kwargs):
-        return self.black_score
+        return self.black_qualification_points
 
 class Query:
     all_matches = graphene.List(graphene.NonNull(MatchType))

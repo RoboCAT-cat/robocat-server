@@ -1,10 +1,27 @@
 import uuid
+import enum
 from django.db import models
 from django.utils.translation import gettext_lazy as _, gettext as e_
-from django.db.models import F, Q, Case, When, ExpressionWrapper
+from django.db.models import F, Q, Case, When, ExpressionWrapper, Value
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 
 from teams.models import Team
+
+@enum.unique
+class MatchResult(enum.Enum):
+    WHITE_WINS = 'W'
+    BLACK_WINS = 'B'
+    DRAW = 'D'
+    BOTH_LOSE = 'F'
+
+    @property
+    def description(self):
+        return {
+            self.WHITE_WINS: _('White team wins'),
+            self.BLACK_WINS: _('Black team wins'),
+            self.DRAW: _('Both teams have got the same score'),
+            self.BOTH_LOSE: _('Both teams have been disqualified. Nobody wins')
+        }[self]
 
 class ScoredMatchManager(models.Manager):
     @staticmethod
@@ -65,6 +82,20 @@ class ScoredMatchManager(models.Manager):
             output_field=models.IntegerField()
         )
 
+    @staticmethod
+    def gen_expr_for_result():
+        return Case(
+            When(white_qualification_points=3, black_qualification_points=0,
+                then=Value(MatchResult.WHITE_WINS.value)),
+            When(white_qualification_points=0, black_qualification_points=3,
+                then=Value(MatchResult.BLACK_WINS.value)),
+            When(white_qualification_points=1, black_qualification_points=1,
+                then=Value(MatchResult.DRAW.value)),
+            When(white_qualification_points=0, black_qualification_points=0,
+                then=Value(MatchResult.BOTH_LOSE.value)),
+            output_field=models.CharField()
+        )
+
     def get_queryset(self):
         return (
             super().get_queryset()
@@ -72,6 +103,7 @@ class ScoredMatchManager(models.Manager):
             .annotate(black_score=self.gen_expr_for_black_score())
             .annotate(white_qualification_points=self.gen_expr_for_white_qual_points())
             .annotate(black_qualification_points=self.gen_expr_for_black_qual_points())
+            .annotate(result=self.gen_expr_for_result())
         )
 
 # Create your models here.

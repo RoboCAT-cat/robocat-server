@@ -1,11 +1,14 @@
 import graphene
 from graphene_django import DjangoObjectType
-from .models import Match
+from .models import Match, MatchResult
 
 class MatchType(DjangoObjectType):
     class Meta:
         model = Match
         fields = ['id', 'white_team', 'black_team', 'status']
+
+MatchResultEnum = graphene.Enum.from_enum(MatchResult, description=lambda v:
+    v.description if v is not None else None)
 
 class ScoredMatchType(DjangoObjectType):
     class Meta:
@@ -16,6 +19,7 @@ class ScoredMatchType(DjangoObjectType):
     black_score = graphene.Int()
     white_qualification_points = graphene.Int()
     black_qualification_points = graphene.Int()
+    result = MatchResultEnum()
 
     def resolve_white_score(self, info, **kwargs):
         return self.white_score
@@ -28,6 +32,9 @@ class ScoredMatchType(DjangoObjectType):
 
     def resolve_black_qualification_points(self, info, **kwargs):
         return self.black_qualification_points
+
+    def resolve_result(self, info, **kwargs):
+        return self.result
 
 class Query:
     all_matches = graphene.List(graphene.NonNull(MatchType))

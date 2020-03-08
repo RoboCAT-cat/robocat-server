@@ -164,11 +164,13 @@ class Match(models.Model):
             errors.append(ValidationError(_("At least one team must be non-null"), 'both-teams-null'))
         if self.white_team is not None and self.black_team is not None and self.white_team.pk == self.black_team.pk:
             errors.append(ValidationError(_("A team may not play against itself"), 'team-against-itself'))
-        if self.status == self.Status.FINISHED:
-            if self.score is None:
-                errors.append(ValidationError(_("A finished match must have a score"), 'finished-no-score'))
-            if self.partial_black is not None or self.partial_white is not None:
-                errors.append(ValidationError(_("A finished match may not have a partial score"), 'partial-score-on-finished'))
+        # if self.status == self.Status.FINISHED:
+        #     #if self.score is None:
+        #     if not hasattr(self, 'score'):
+        #         errors.append(ValidationError(_("A finished match must have a score"), 'finished-no-score'))
+        #     #if self.partial_black is not None or self.partial_white is not None:
+        #     if hasattr(self, 'partial_black') or hasattr(self, 'partial_white'):
+        #         errors.append(ValidationError(_("A finished match may not have a partial score"), 'partial-score-on-finished'))
         if errors:
             raise ValidationError(errors)
 
@@ -279,71 +281,39 @@ class Score(models.Model):
             default=score
         ) + F('white_adhoc')
 
-    # @property
-    # def white_score(self):
-    #     score = 0
-    #     score += self.white_adhoc
-    #     if self.white_disqualified:
-    #         return score
-    #     if not self.white_stalled:
-    #         score += 10
-    #     score += self.cubes_on_lower_black or 0
-    #     score += 5 * (self.cubes_on_upper_black or 0)
-    #     if (self.cubes_on_white_field or 0) < (self.cubes_on_black_field or 0):
-    #         score += 10
-    #     score += self.white_adhoc
-    #     return score
+    @property
+    def white_score_py(self):
+        score = 0
+        score += self.white_adhoc
+        if self.white_disqualified:
+            return score
+        if not self.white_stalled:
+            score += 10
+        score += self.cubes_on_lower_black or 0
+        score += 5 * (self.cubes_on_upper_black or 0)
+        if (self.cubes_on_white_field or 0) < (self.cubes_on_black_field or 0):
+            score += 10
+        score += self.white_adhoc
+        return score
 
-    # @property
-    # def black_score(self):
-    #     score = 0
-    #     score += self.black_adhoc
-    #     if self.black_disqualified:
-    #         return 0
-    #     if not self.black_stalled:
-    #         score += 10
-    #     score += self.cubes_on_lower_white or 0
-    #     score += 5 * (self.cubes_on_upper_white or 0)
-    #     if (self.cubes_on_black_field or 0) < (self.cubes_on_white_field or 0):
-    #         score += 10
-    #     return score
-
-    # @property
-    # def white_won(self):
-    #     return (not self.white_disqualified) and (self.black_disqualified
-    #         or self.white_score > self.black_score)
-
-    # @property
-    # def black_won(self):
-    #     return (not self.black_disqualified) and (self.white_disqualified
-    #         or self.black_score > self.white_score)
-
-    # @property
-    # def white_qualification_points(self):
-    #     if self.white_disqualified:
-    #         return 0
-    #     elif self.white_won:
-    #         return 3
-    #     elif self.black_won:
-    #         return 0
-    #     else:
-    #         return 1
-
-    # @property
-    # def black_qualification_points(self):
-    #     if self.black_disqualified:
-    #         return 0
-    #     elif self.black_won:
-    #         return 3
-    #     elif self.white_won:
-    #         return 0
-    #     else:
-    #         return 1
+    @property
+    def black_score_py(self):
+        score = 0
+        score += self.black_adhoc
+        if self.black_disqualified:
+            return 0
+        if not self.black_stalled:
+            score += 10
+        score += self.cubes_on_lower_white or 0
+        score += 5 * (self.cubes_on_upper_white or 0)
+        if (self.cubes_on_black_field or 0) < (self.cubes_on_white_field or 0):
+            score += 10
+        return score
 
     def __str__(self):
         return e_('White: %(white_score)s; Black: %(black_score)s') % {
-            'white_score': self.white_score,
-            'black_score': self.black_score
+            'white_score': self.white_score_py,
+            'black_score': self.black_score_py
         }
 
 class PartialScore(models.Model):

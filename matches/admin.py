@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Score, PartialScore, Match
+from .models import Score, PartialScore, Match, MatchResult
 from django.utils.translation import gettext_lazy as _, pgettext
 
 # Register your models here.
@@ -54,7 +54,7 @@ class MatchAdmin(admin.ModelAdmin):
     NO_SCORE_AVAILABLE = pgettext('no score available', 'N/A')
 
     readonly_fields = ('white_score', 'black_score',
-        'white_qualification_points', 'black_qualification_points')
+        'white_qualification_points', 'black_qualification_points', 'result')
 
     fieldsets = [
         (None, {
@@ -62,7 +62,8 @@ class MatchAdmin(admin.ModelAdmin):
         }),
         (_('Calculated score'), {
             'fields': [('white_score', 'black_score'),
-                ('white_qualification_points', 'black_qualification_points')],
+                ('white_qualification_points', 'black_qualification_points'),
+                'result'],
             'description': _('Calculated score for this match. This score is '
                 'based on the <strong>final</strong> score, not on partial ones. '
                 'To change these values, alter the corresponding fields on the '
@@ -88,8 +89,12 @@ class MatchAdmin(admin.ModelAdmin):
         return points if points is not None else self.NO_SCORE_AVAILABLE
 
     def black_qualification_points(self, obj):
-        points = obj.white_qualification_points
+        points = obj.black_qualification_points
         return points if points is not None else self.NO_SCORE_AVAILABLE
+
+    def result(self, obj):
+        result = obj.result
+        return MatchResult(result).description if result is not None else self.NO_SCORE_AVAILABLE
 
     def get_queryset(self, request):
         return self.model.scored_objects.get_queryset()

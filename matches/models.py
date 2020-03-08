@@ -111,6 +111,10 @@ class Match(models.Model):
     class Meta:
         verbose_name = _('match')
         verbose_name_plural = _('matches')
+        indexes = [
+            models.Index(fields=['white_team']),
+            models.Index(fields=['black_team'])
+        ]
 
     # Managers
     objects = models.Manager()

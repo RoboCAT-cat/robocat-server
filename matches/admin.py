@@ -70,6 +70,7 @@ class MatchAdmin(admin.ModelAdmin):
                 'score table.')
         })
     ]
+
     inlines = [
         WhitePartialScoreInline,
         BlackPartialScoreInline,

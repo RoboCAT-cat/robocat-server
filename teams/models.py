@@ -1,7 +1,8 @@
 from django.db import models
 from django.db.models.functions import Coalesce
 from django.db.models import OuterRef, Sum
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _, gettext
 import random
 
 # Create your models here.
@@ -37,21 +38,21 @@ class RankedTeamManager(models.Manager):
         return Match.scored_objects.filter(white_team__id=OuterRef('id')).annotate(
             qp=Sum(Coalesce('white_qualification_points', 0))
         ).values('qp')
-    
+
     @staticmethod
     def gen_qual_points_as_black():
         from matches.models import Match
         return Match.scored_objects.filter(black_team__id=OuterRef('id')).annotate(
             qp=Sum(Coalesce('black_qualification_points', 0))
         ).values('qp')
-    
+
     @staticmethod
     def gen_score_as_white():
         from matches.models import Match
         return Match.scored_objects.filter(white_team__id=OuterRef('id')).annotate(
             s=Sum(Coalesce('white_score', 0))
         ).values('s')
-    
+
     @staticmethod
     def gen_score_as_black():
         from matches.models import Match
@@ -71,7 +72,7 @@ class RankedTeamManager(models.Manager):
         )
 
 def gen_raffle_result():
-    return random.randint(0, 2147483647)
+    return random.randint(0, 2_147_483_647)
 
 class Team(models.Model):
     class Meta:
@@ -106,3 +107,31 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
+
+class TeamMembership(models.Model):
+    class Meta:
+        verbose_name = _('team membership')
+        verbose_name_plural = _('team memberships')
+
+        indexes = [
+            models.Index(fields=('user',)),
+            models.Index(fields=('team',))
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=('user', 'team'), name='no_redundant_membership')
+        ]
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='team',
+        verbose_name=_('user')
+    )
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        related_name='members',
+        verbose_name=_('team')
+    )
+
+    def __str__(self):
+        return gettext("%(user)s of team %(team)s") % { 'user': self.user, 'team': self.team }

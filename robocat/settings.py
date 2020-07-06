@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'client.apps.ClientConfig',
     'teams.apps.TeamsConfig',
     'matches.apps.MatchesConfig',
-    'schedules',  # TODO: Adapt and use SchedulesConfig (missing verbose_name)
+    'schedules.apps.SchedulesConfig',
 ]
 
 MIDDLEWARE = [

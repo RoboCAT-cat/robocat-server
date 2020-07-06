@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Q, F
-from django.utils.translation import (gettext_lazy as _, pgettext_lazy)
+from django.utils.translation import (gettext_lazy as _, pgettext_lazy, gettext)
 from matches.models import Match
 
 class Schedule(models.Model):
@@ -18,6 +18,12 @@ class Schedule(models.Model):
         help_text=_("Short description to identify the schedule. Only informative")
     )
 
+    def __str__(self):
+        if self.desc:
+            return gettext('Schedule %(id)d: %(desc)s') % {'id': self.id, 'desc': self.desc}
+        else:
+            return gettext('Schedule %d') % (self.id,)
+
 class ScheduledMatch(models.Model):
     class Meta:
         verbose_name = _('scheduled match')
@@ -33,7 +39,7 @@ class ScheduledMatch(models.Model):
         on_delete=models.PROTECT,
         null=True,
         verbose_name=('match'),
-        help_text=_("Related match, or NULL for 'to-be-decided'")
+        help_text=_("Related match, or empty for 'to-be-decided'")
     )
     round = models.PositiveIntegerField(default=None, null=True, verbose_name=_('round'))
     table = models.PositiveIntegerField(default=1, verbose_name=pgettext_lazy('competition field', 'table'))

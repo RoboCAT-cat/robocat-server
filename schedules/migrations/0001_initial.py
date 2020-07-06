@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('table', models.PositiveIntegerField(default=1, verbose_name='table')),
                 ('start_time', models.DateTimeField(verbose_name='start time')),
                 ('end_time', models.DateTimeField(verbose_name='end time')),
-                ('match', models.ForeignKey(help_text="Related match, or NULL for 'to-be-decided'", null=True, on_delete=django.db.models.deletion.PROTECT, to='matches.Match', verbose_name='match')),
+                ('match', models.ForeignKey(help_text="Related match, or empty for 'to-be-decided'", null=True, on_delete=django.db.models.deletion.PROTECT, to='matches.Match', verbose_name='match')),
                 ('schedule', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='schedules.Schedule', verbose_name='schedule')),
             ],
             options={

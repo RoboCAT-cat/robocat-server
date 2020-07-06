@@ -1,0 +1,10 @@
+{% extends "admin/submit_line.html" %}
+{% load i18n %}
+{% block submit-row %}
+{% if adminform.form.instance.active %}
+    <input type="submit" name="x-mark-not-active" value="{% trans 'Mark as not active' %}" />
+{% else %}
+    <input type="submit" name="x-mark-active" value="{% trans 'Mark as active' %}" />
+{% endif %}
+{{ block.super }}
+{% endblock %}

@@ -66,5 +66,5 @@ class Query:
     def resolve_ranking(self, info, **kwargs):
         return Team.ranked_objects.order_by('-qualification_points', '-total_score', 'raffle')
 
-    def ranked_team(self, info, **kwargs):
-        return Team.ranked_objects.filter(key=categoryId).first()
+    def ranked_team(self, info, teamId, **kwargs):
+        return Team.ranked_objects.filter(key=teamId).first()

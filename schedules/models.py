@@ -33,12 +33,18 @@ class ScheduledMatch(models.Model):
             models.UniqueConstraint(fields=('schedule', 'match'), name='no_match_repetition')
         ]
 
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, verbose_name=_('schedule'))
+    schedule = models.ForeignKey(
+        Schedule,
+        on_delete=models.CASCADE,
+        verbose_name=_('schedule'),
+        related_name='matches'
+    )
     match = models.ForeignKey(
         Match,
         on_delete=models.PROTECT,
         null=True,
         verbose_name=('match'),
+        related_name='scheduled_on',
         help_text=_("Related match, or empty for 'to-be-decided'")
     )
     round = models.PositiveIntegerField(default=None, null=True, verbose_name=_('round'))

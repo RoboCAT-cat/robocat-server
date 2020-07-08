@@ -33,7 +33,7 @@ class ScheduleType(DjangoObjectType):
 
 class Query:
     schedule = graphene.Field(ScheduleType, scheduleId=graphene.ID(required=False))
-    all_schedules = graphene.List(graphene.NonNull(ScheduleType))
+    all_schedules = graphene.NonNull(graphene.List(graphene.NonNull(ScheduleType)))
 
     def resolve_schedule(self, info, scheduleId=None, **kwargs):
         if scheduleId is None:
@@ -47,4 +47,4 @@ class Query:
         if info.context.user.is_staff:
             return Schedule.objects.all()
         else:
-            return None
+            return Schedule.objects.filter(active=True)

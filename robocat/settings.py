@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'graphene_django',
     'corsheaders',
-    'client.apps.ClientConfig',
     'teams.apps.TeamsConfig',
     'matches.apps.MatchesConfig',
     'schedules.apps.SchedulesConfig',
@@ -131,11 +130,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'robocat-client', 'dist', 'robocat-client'),
-]
+STATIC_URL = '/_/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static-root')
 

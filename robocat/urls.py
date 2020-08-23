@@ -14,19 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import RedirectView
 from .views import favicon_redirect
 
 urlpatterns = [
     path('favicon.ico', favicon_redirect),
-    path('admin/', admin.site.urls),
+    path('_/admin/', admin.site.urls),
     # TODO: Implement CSRF protection?
-    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True)), name='graphql'),
-    # Alternative solution to avoid a robocat/ URL: add a catch-all admin/graphql with a
-    # view that raises Http404
-    path('robocat/', include('client.urls', namespace='client')),
-    path('', RedirectView.as_view(url='/robocat/'))
+    path('_/graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True)), name='graphql'),
 ]

@@ -11,7 +11,7 @@ graphene = ">=2.0"
 graphene-django = "~=2.8.0"
 django-cors-headers = "*"
 django-htmlmin = "*"
-whitenoise = {extras = ["brotli"],version = "*"}
+whitenoise = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"
